@@ -6,7 +6,7 @@ on:
     # Adjust once you know when the dashboard actually rebuilds (check
     # dashboard_built_at across a few days of snapshots) — no point polling
     # hours before the day's forecast has landed.
-    - cron: "17 8 * * *"
+    - cron: "17 15 * * *"
   workflow_dispatch: {}
 
 permissions:
