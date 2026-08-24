@@ -1,0 +1,39 @@
+name: Scrape INRB invasion-risk snapshot
+
+on:
+  schedule:
+    # Daily, staggered off the hour to avoid GH Actions' top-of-hour congestion.
+    # Adjust once you know when the dashboard actually rebuilds (check
+    # dashboard_built_at across a few days of snapshots) — no point polling
+    # hours before the day's forecast has landed.
+    - cron: "17 8 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # No requirements.txt needed — the script only uses the standard library.
+      - name: Fetch invasion-risk snapshot
+        run: python scripts/scrape_invasion_risk.py
+
+      - name: Commit snapshot if changed
+        run: |
+          git config user.name "invasion-risk-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add snapshots/
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "Snapshot invasion-risk data ($(date -u +%Y-%m-%d))"
+            git push
+          fi
